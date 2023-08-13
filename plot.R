@@ -1,32 +1,31 @@
-setwd("D:/R/")
-#bubblematrix
+#bubblebpie
 library(ggplot2)
 library(scatterpie)
 library(RColorBrewer)
 colormap <- c( "#FEFF1A","#FF8C00","#1SUMEFF","#0075EB","#DDDDDD")
 #colormap <- colorRampPalette(brewer.pal(4, "Set2"))(4)
-crime <- read.csv("E:/R/coreARG.txt",header = TRUE, sep = "\t", stringsAsFactors = F)
+crime <- read.csv("ARG.txt",header = TRUE, sep = "\t", stringsAsFactors = F)
 radius <- sqrt(crime$SUM / pi)
 Max_radius<-max(radius)
 Bubble_Scale<-0.1
 crime$radius <- Bubble_Scale * radius/Max_radius
-mydata<-crime[,c(2,4,3,5:9)] #数据集的选择与排序处???
+mydata<-crime[,c(2,4,3,5:9)] #Selection and sorting of data sets
 Col_Mean<-apply(mydata,2,mean)
 Col_Sort<-sort(Col_Mean,index.return=TRUE,decreasing = TRUE)
 mydata<-mydata[,Col_Sort$ix]
-#对X 轴和Y 轴变量数值做归一化处理至[0, 1]区间
+#The values of X-axis and Y-axis variables are normalized to the interval [0, 1]
 x<-(mydata$Region-min(mydata$Region))/(max(mydata$Region)-min(mydata$Region))+0.00001
 y<-(mydata$subtype-min(mydata$subtype))/(max(mydata$subtype)-min(mydata$subtype))+0.00001
 #y<-(mydata$subtype)
-#设置X 和Y 轴的刻度标签
+#Set the scale labels for the X and Y axes
 xlabel<-seq(0,8,1)
 xbreak<-(xlabel-min(mydata$Region))/(max(mydata$Region)-min(mydata$Region))+0.00001
 ylabel<-seq(0,20,1)
 ybreak<-(ylabel-min(mydata$subtype))/(max(mydata$subtype)-min(mydata$subtype))+0.00001
-mydata1<-data.frame(x,y,radius=crime$radius) # mydata1 为X 轴和Y 轴绘制数值变量和饼图绘制半径
+mydata1<-data.frame(x,y,radius=crime$radius) # mydata1 Plot numerical variables for the X and Y axes and pie charts plot radius
 mydata2<-cbind(mydata1,mydata)
-Legnd_label<-colnames(mydata2)[4:8] #保存图例的数据系列名???
-colnames(mydata2)[4:8]<-LETTERS[1:5] #按字母顺序重新命名数据系列的列名
+Legnd_label<-colnames(mydata2)[4:8] 
+colnames(mydata2)[4:8]<-LETTERS[1:5] 
 ggplot() +
   theme( panel.background = element_blank(),
          panel.grid.major = element_line(colour=NA),
@@ -40,4 +39,30 @@ ggplot() +
   xlab("Region")+
   ylab("subtype")+
   coord_fixed()
+
+
+
+#heatmap
+install.packages("pheatmap")
+library(pheatmap)
+ARG<- read.table("Genus_percentage.txt",header=TRUE)
+
+matr<-data.matrix(ARG)
+
+pheatmap(matr, cluster_rows=FALSE, cluster_cols=FALSE, fontsize=13, fontsize_row=11, cellwidth=19, cellheight=11.5, legend=TRUE)
+
+
+
+#upset venn
+install.packages("UpSetR")
+library(UpSetR)
+library(ggplot2)
+regions <-read.csv(system.file("upsetdata", "data.csv", package ="UpSetR")，header = T，sep =";")
+ 
+##text.scale =c(intersection size title,intersection size ticklabels, set size title, set size tick labels, set names, numbers above bars)
+upset(regions,nsets = 7, number.angles = 30, point.size = 3.5, line.size = 2, mainbar.y.label = "Intersection Size",sets.x.label = "No. of ARG subtype", text,scale =c(1.3, 1.3,1, 1,2, 0.75))
+#Custom groups for the intersection
+upset(regions ,sets = c("South Africa","Macau","Singapore","Brazil", "Hong Kong", "The USA", "Taiwan", "Mainland China"), mb.ratio = c(0.55,0.45), order.by = "freq")
+#The intersection results are grouped, nintersects the number of crossing points and cutoff the threshold of crossing results
+upset(movies,nintersects = 70, group.by = "sets", cutoff = 7)
 
